@@ -65,3 +65,7 @@ a {
 input:focus {
   outline: none;
 }
+
+input {
+  @apply p-4 outline-none border border-gray-300 my-1;
+}

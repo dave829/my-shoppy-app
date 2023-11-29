@@ -1,15 +1,14 @@
 import { Link } from "react-router-dom";
 import { FiShoppingBag } from "react-icons/fi";
 import { BsFillPencilFill } from "react-icons/bs";
-import { login, logout, onUserStateChange } from "../api/firebase";
-import { useEffect, useState } from "react";
-import { UserType } from "../typeModel/user";
 import { User } from "./User";
 import { Button } from "./ui/Button";
-import { useAuthContext } from "./context/AuthContext";
+import { useAuthContext } from "../context/AuthContext";
+import { CartStatus } from "./ui/CartStatus";
 
 export const Navbar = () => {
   const { user, login, logout } = useAuthContext();
+  //console.log(user);
 
   // const [user, setUser] = useState<UserType | null>(null);
   // //console.log(user);
@@ -53,12 +52,17 @@ export const Navbar = () => {
       </Link>
       <nav className="flex items-center gap-4 font-semibold">
         <Link to="/products">Products</Link>
-        {user && <Link to="/carts">Carts</Link>}
+        {user && (
+          <Link to="/carts">
+            <CartStatus />
+          </Link>
+        )}
         {user && user.isAdmin && (
           <Link to="/products/new" className="text-1xl">
             <BsFillPencilFill />
           </Link>
         )}
+        {/* {console.log(user.isAdmin)} */}
         {user && <User user={user} />}
         {!user && <Button text={"Login"} onClick={login} />}
         {user && <Button text={"Logout"} onClick={logout} />}

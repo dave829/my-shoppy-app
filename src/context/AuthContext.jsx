@@ -1,11 +1,11 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { login, logout, onUserStateChange } from "../../api/firebase";
-import { UserType } from "../../typeModel/user";
+import { onUserStateChange, login, logout } from "../api/firebase";
 
 const AuthContext = createContext({});
 
 export function AuthContextProvider({ children }) {
-  const [user, setUser] = (useState < UserType) | (null > null);
+  const [user, setUser] = useState(null);
+  //console.log(user);
 
   useEffect(() => {
     onUserStateChange((user) => {
@@ -14,7 +14,9 @@ export function AuthContextProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, uid: user && user.uid, login, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

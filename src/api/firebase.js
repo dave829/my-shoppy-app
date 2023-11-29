@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 
-import { getDatabase, ref, child, get, set } from "firebase/database";
+import { getDatabase, ref, get, set, remove } from "firebase/database";
 
 import {
   getAuth,
@@ -10,6 +10,8 @@ import {
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
+
+import { v4 as uuid } from "uuid";
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -27,6 +29,7 @@ const provider = new GoogleAuthProvider();
 // db
 const database = getDatabase(app);
 
+//로그인
 export function login() {
   // return (
   return (
@@ -55,6 +58,7 @@ export function login() {
   // });
 }
 
+//로그아웃
 export function logout() {
   //const auth = getAuth();
   //return signOut(auth).then(() => null);
@@ -75,8 +79,12 @@ export function logout() {
 //     // An error happened.
 //   });
 
+//사용자 상태
 export function onUserStateChange(callback) {
   onAuthStateChanged(auth, async (user) => {
+    // user && adminUser(user);
+    // console.log(user);
+
     // 1. 사용자가 있는 경우 (로그인 한 경우) / 사용자 있으면 adminUser(user) / 없으면 null
     const updatedUser = user ? await adminUser(user) : null;
     // 그리고 콜백에는 updatedUser 준다.
@@ -84,6 +92,7 @@ export function onUserStateChange(callback) {
   });
 }
 
+//어드민
 async function adminUser(user) {
   return get(ref(database, "admins")) //
     .then((snapshot) => {
@@ -91,11 +100,55 @@ async function adminUser(user) {
         // 2. 사용자가 어드민(어드민 권한을 가지고 있는지)인지 확인.
         const admins = snapshot.val();
         const isAdmin = admins.includes(user.uid); //즉, 문자열 일치 여부 boolean 값
+        //console.log(isAdmin);
         // 3. 사용자에게 알려주면 됨 즉, {...user, isAdmin: true/false} 어드민이면 true 아니면 false
         return { ...user, isAdmin };
       }
       return user;
     });
+}
+
+//새로운 상품 추가
+export async function addNewProduct(product, imageUrl) {
+  const id = uuid();
+  return set(ref(database, `products/${id}`), {
+    ...product,
+    id,
+    price: parseInt(product.price),
+    image: imageUrl,
+    options: product.options.split(","),
+  });
+}
+
+//상품 Get(Reading)
+export async function getProducts() {
+  return get(ref(database, "products")) //
+    .then((snapshot) => {
+      if (snapshot.exists()) {
+        return Object.values(snapshot.val());
+      }
+      return [];
+    });
+}
+
+// Get 카트 (Read)
+export async function getCart(userId) {
+  return get(ref(database, `carts/${userId}`)) //
+    .then((snapshot) => {
+      const items = snapshot.val() || {};
+      //console.log(items);
+      return Object.values(items);
+    });
+}
+
+// Set 카트 (Create or Update)
+export async function addOrUpdateToCart(userId, product) {
+  return set(ref(database, `carts/${userId}/${product.id}`), product);
+}
+
+// remove 카트 (Delete)
+export async function removeFromCart(userId, productId) {
+  return remove(ref(database, `carts/${userId}/${productId}`));
 }
 
 /////////////////////////////////////////////////////////////////
